@@ -27,21 +27,51 @@ module.exports = (db) => {
   // Rota para buscar todos os itens no inventário
   router.get('/inventory', (req, res) => {
     db.all("SELECT * FROM inventory", (err, rows) => {
-      if (err) res.status(500).json({ error: err.message });
-      else res.json({ data: rows });
+      if (err) {
+        console.error('Erro ao buscar dados do inventário:', err.message); // Mensagem de erro detalhada
+        res.status(500).json({ error: err.message });
+      } else {
+        console.log('Dados do inventário obtidos:', rows); // Verificar o que está sendo retornado
+        res.json({ data: rows });
+      }
     });
   });
+  
 
   // Rota para adicionar um item ao inventário
   router.post('/inventory', (req, res) => {
     const { item, quantity = 1 } = req.body;
+    if (!item || typeof quantity !== 'number' || quantity < 0) {
+      return res.status(400).json({ error: 'Dados inválidos para adicionar item' });
+    }
     db.run("INSERT INTO inventory (item, quantity) VALUES (?, ?)", [item, quantity], function(err) {
-      if (err) res.status(500).json({ error: err.message });
-      else res.json({ id: this.lastID });
+      if (err) {
+        console.error('Erro ao adicionar item ao inventário:', err.message);
+        res.status(500).json({ error: err.message });
+      } else {
+        res.json({ id: this.lastID });
+      }
     });
   });
 
-  // Rota para atualizar a quantidade de um item específico no inventário
+  router.delete('/inventory/:id', (req, res) => {
+    const { id } = req.params;
+    console.log("ID recebido para deletar:", id); 
+  
+    const query = "DELETE FROM inventory WHERE id = ?";
+    db.run(query, [id], function(err) {
+      if (err) {
+        console.error('Erro ao deletar item:', err.message);
+        return res.status(500).json({ error: err.message });
+      }
+      if (this.changes === 0) {
+        return res.status(404).json({ error: 'Item não encontrado' });
+      }
+      
+      res.status(200).json({ message: 'Item deletado com sucesso!' });
+    });
+  });
+
   router.put('/inventory/:id', (req, res) => {
     const { id } = req.params;
     const { quantity } = req.body;
