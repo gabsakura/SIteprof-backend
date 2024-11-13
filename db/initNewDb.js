@@ -5,16 +5,6 @@ const db = new sqlite3.Database('./db/new_dashboard.db');
 const initNewDb = () => {
   db.serialize(() => {
     db.run(`
-      CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        username TEXT UNIQUE,
-        email TEXT UNIQUE,
-        password TEXT,
-        verified INTEGER DEFAULT 0
-      )
-    `);
-
-    db.run(`
       CREATE TABLE IF NOT EXISTS financial_data (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         timestamp TEXT,
@@ -25,7 +15,9 @@ const initNewDb = () => {
         new_customers INTEGER,
         inventory INTEGER
       )
-    `);
+    `, (err) => {
+      if (err) console.error("Erro ao criar tabela financial_data:", err.message);
+    });
 
     db.run(`
       CREATE TABLE IF NOT EXISTS inventory (
@@ -33,7 +25,9 @@ const initNewDb = () => {
         item TEXT,
         quantity INTEGER
       )
-    `);
+    `, (err) => {
+      if (err) console.error("Erro ao criar tabela inventory:", err.message);
+    });
   });
 };
 
