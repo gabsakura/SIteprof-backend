@@ -1,42 +1,109 @@
 const express = require('express');
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
 const router = express.Router();
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const { verificarToken, verificarAdmin } = require('../middleware/authMiddleware');
+
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  console.error('ERRO: JWT_SECRET não está definido no arquivo .env');
+  process.exit(1);
+}
 
 module.exports = (db) => {
-  router.post('/register', async (req, res) => {
-    const { username, email, password } = req.body;
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const query = `INSERT INTO users (username, email, password) VALUES (?, ?, ?)`;
-  
-    db.run(query, [username, email, hashedPassword], function (err) {
-      if (err) {
-        console.error('Erro ao registrar usuário:', err.message);
-        return res.status(400).json({ message: 'Usuário já existe' });
-      }
-      const verificationCode = Math.floor(100000 + Math.random() * 900000);
-      sendVerificationEmail(email, verificationCode)
-        .then(() => {
-          res.status(200).json({ message: 'Verifique seu email para confirmação.' });
-        })
-        .catch((err) => {
-          console.error("Erro ao enviar email:", err);
-          res.status(500).json({ message: 'Erro ao enviar email de verificação.' });
-        });
-    });
-  });
-  
-  router.post('/login', (req, res) => {
+  // Rota de login
+  router.post('/login', async (req, res) => {
     const { email, password } = req.body;
+    console.log('Tentativa de login para:', email); // Log para debug
 
-    db.get("SELECT * FROM users WHERE email = ?", [email], async (err, user) => {
-      if (err || !user || !await bcrypt.compare(password, user.password)) {
-        return res.status(400).json({ message: 'Credenciais inválidas' });
+    try {
+      // Busca o usuário pelo email
+      db.get('SELECT * FROM users WHERE email = ?', [email], async (err, user) => {
+        if (err) {
+          console.error('Erro ao buscar usuário:', err);
+          return res.status(500).json({ error: 'Erro interno do servidor' });
+        }
+
+        if (!user) {
+          return res.status(401).json({ error: 'Credenciais inválidas' });
+        }
+
+        // Verifica a senha
+        const senhaValida = await bcrypt.compare(password, user.password);
+        if (!senhaValida) {
+          return res.status(401).json({ error: 'Credenciais inválidas' });
+        }
+
+        // Gera o token JWT
+        const token = jwt.sign(
+          { 
+            id: user.id,
+            email: user.email,
+            tipo: user.tipo
+          },
+          JWT_SECRET,
+          { expiresIn: '24h' }
+        );
+
+        // Retorna o token e os dados do usuário
+        res.json({
+          token,
+          user: {
+            id: user.id,
+            nome: user.nome,
+            email: user.email,
+            tipo: user.tipo
+          }
+        });
+      });
+    } catch (error) {
+      console.error('Erro no login:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  // Rota para verificar admin
+  router.get('/verify-admin', verificarToken, (req, res) => {
+    res.json({ isAdmin: req.usuario.tipo === 'admin' });
+  });
+
+  // Rota para registro (protegida)
+  router.post('/users/register', verificarToken, verificarAdmin, async (req, res) => {
+    const { nome, email, password, tipo, verified } = req.body;
+
+    try {
+      // Verificar email único
+      const existingUser = await new Promise((resolve, reject) => {
+        db.get('SELECT id FROM users WHERE email = ?', [email], (err, row) => {
+          if (err) reject(err);
+          resolve(row);
+        });
+      });
+
+      if (existingUser) {
+        return res.status(400).json({ error: 'Email já cadastrado' });
       }
 
-      const token = jwt.sign({ id: user.id, username: user.username }, process.env.JWT_SECRET, { expiresIn: '1h' });
-      res.json({ token });
-    });
+      // Hash da senha
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      // Inserir usuário
+      await new Promise((resolve, reject) => {
+        db.run(
+          'INSERT INTO users (nome, email, password, tipo, verified) VALUES (?, ?, ?, ?, ?)',
+          [nome, email, hashedPassword, tipo || 'user', verified || true],
+          function(err) {
+            if (err) reject(err);
+            resolve(this.lastID);
+          }
+        );
+      });
+
+      res.json({ message: 'Usuário criado com sucesso' });
+    } catch (error) {
+      console.error('Erro ao criar usuário:', error);
+      res.status(500).json({ error: 'Erro ao criar usuário' });
+    }
   });
 
   return router;
