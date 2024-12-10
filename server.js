@@ -8,6 +8,9 @@ const initNewDb = require('./db/initNewDb');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+app.use(cors());
+app.use(express.json());
+
 // Configuração do CORS mais específica
 app.use(cors({
   origin: 'http://localhost:5173', // URL do seu frontend Vite
@@ -15,8 +18,6 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
-
-app.use(express.json());
 
 // Log para debug
 app.use((req, res, next) => {
@@ -39,6 +40,9 @@ app.use('/auth', authRoutes);
 
 const apiRoutes = require('./routes/api')(db);
 app.use('/api', apiRoutes);
+
+const kanbanRoutes = require('./routes/kanban');
+app.use('/api/kanban', kanbanRoutes(db));
 
 // Adicione esta linha para servir arquivos estáticos
 app.use('/uploads', express.static('uploads'));

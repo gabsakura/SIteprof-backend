@@ -14,51 +14,52 @@ module.exports = (db) => {
   // Rota de login
   router.post('/login', async (req, res) => {
     const { email, password } = req.body;
-    console.log('Tentativa de login para:', email); // Log para debug
 
     try {
-      // Busca o usuário pelo email
-      db.get('SELECT * FROM users WHERE email = ?', [email], async (err, user) => {
-        if (err) {
-          console.error('Erro ao buscar usuário:', err);
-          return res.status(500).json({ error: 'Erro interno do servidor' });
-        }
-
-        if (!user) {
-          return res.status(401).json({ error: 'Credenciais inválidas' });
-        }
-
-        // Verifica a senha
-        const senhaValida = await bcrypt.compare(password, user.password);
-        if (!senhaValida) {
-          return res.status(401).json({ error: 'Credenciais inválidas' });
-        }
-
-        // Gera o token JWT
-        const token = jwt.sign(
-          { 
-            id: user.id,
-            email: user.email,
-            tipo: user.tipo
-          },
-          JWT_SECRET,
-          { expiresIn: '24h' }
-        );
-
-        // Retorna o token e os dados do usuário
-        res.json({
-          token,
-          user: {
-            id: user.id,
-            nome: user.nome,
-            email: user.email,
-            tipo: user.tipo
-          }
+      // 1. Verify if email exists
+      const user = await new Promise((resolve, reject) => {
+        db.get('SELECT * FROM users WHERE email = ?', [email], (err, row) => {
+          if (err) reject(err);
+          resolve(row);
         });
       });
+
+      if (!user) {
+        return res.status(401).json({ error: 'Invalid email or password' });
+      }
+
+      // 2. Compare password
+      const isValidPassword = await bcrypt.compare(password, user.password);
+      
+      if (!isValidPassword) {
+        return res.status(401).json({ error: 'Invalid email or password' });
+      }
+
+      // 3. Generate JWT token
+      const token = jwt.sign(
+        { 
+          id: user.id, 
+          email: user.email,
+          tipo: user.tipo 
+        }, 
+        process.env.JWT_SECRET,
+        { expiresIn: '24h' }
+      );
+
+      // 4. Send response
+      res.json({
+        token,
+        user: {
+          id: user.id,
+          nome: user.nome,
+          email: user.email,
+          tipo: user.tipo
+        }
+      });
+
     } catch (error) {
-      console.error('Erro no login:', error);
-      res.status(500).json({ error: 'Erro interno do servidor' });
+      console.error('Login error:', error);
+      res.status(500).json({ error: 'Internal server error' });
     }
   });
 
