@@ -40,6 +40,16 @@ app.use('/auth', authRoutes);
 const apiRoutes = require('./routes/api')(db);
 app.use('/api', apiRoutes);
 
+// Adicione esta linha para servir arquivos estáticos
+app.use('/uploads', express.static('uploads'));
+
+// Crie a pasta de uploads se não existir
+const fs = require('fs');
+const uploadDir = './uploads/profile-images';
+if (!fs.existsSync(uploadDir)){
+    fs.mkdirSync(uploadDir, { recursive: true });
+}
+
 app.listen(PORT, () => {
   console.log(`Servidor rodando na porta ${PORT}`);
 });

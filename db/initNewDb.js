@@ -41,9 +41,10 @@ const initNewDb = async () => {
         nome TEXT NOT NULL,
         email TEXT UNIQUE NOT NULL,
         password TEXT NOT NULL,
-        tipo TEXT CHECK(tipo IN ('admin', 'user')) DEFAULT 'user',
+        tipo TEXT DEFAULT 'user',
         verified BOOLEAN DEFAULT true,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        profile_image_path TEXT,
+        description TEXT
       )
     `, (err) => {
       if (err) console.error("Erro ao criar tabela users:", err.message);
