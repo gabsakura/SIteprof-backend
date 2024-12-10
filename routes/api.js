@@ -108,15 +108,15 @@ module.exports = (db) => {
 
   // Rota para adicionar um item ao inventário
   router.post('/inventory', (req, res) => {
-    const { item, quantity = 1, descricao = '', preco = 0, balance = 0 } = req.body;
+    const { item, quantity = 1, descricao = '', preco = 0 } = req.body;
     
     if (!item || typeof quantity !== 'number' || quantity < 0) {
       return res.status(400).json({ error: 'Dados inválidos para adicionar item' });
     }
 
     db.run(
-      "INSERT INTO inventory (item, quantity, descricao, preco, balance) VALUES (?, ?, ?, ?, ?)",
-      [item, quantity, descricao, preco, balance],
+      "INSERT INTO inventory (item, quantity, descricao, preco) VALUES (?, ?, ?, ?)",
+      [item, quantity, descricao, preco],
       function(err) {
         if (err) {
           console.error('Erro ao adicionar item ao inventário:', err.message);
@@ -131,15 +131,15 @@ module.exports = (db) => {
   // Rota para atualizar item do inventário
   router.put('/inventory/:id', (req, res) => {
     const { id } = req.params;
-    const { item, quantity, descricao, preco, balance } = req.body;
+    const { item, quantity, descricao, preco } = req.body;
 
     if (!item || typeof quantity !== 'number') {
       return res.status(400).json({ error: 'Dados inválidos para atualizar item' });
     }
 
     db.run(
-      "UPDATE inventory SET item = ?, quantity = ?, descricao = ?, preco = ?, balance = ? WHERE id = ?",
-      [item, quantity, descricao || '', preco || 0, balance || 0, id],
+      "UPDATE inventory SET item = ?, quantity = ?, descricao = ?, preco = ? WHERE id = ?",
+      [item, quantity, descricao || '', preco || 0, id],
       function(err) {
         if (err) {
           console.error('Erro ao atualizar item:', err.message);

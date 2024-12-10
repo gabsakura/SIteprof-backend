@@ -25,11 +25,10 @@ const initNewDb = async () => {
     db.run(`
       CREATE TABLE IF NOT EXISTS inventory (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        item TEXT,
-        quantity INTEGER,
+        item TEXT NOT NULL,
+        quantity INTEGER DEFAULT 0,
         descricao TEXT,
-        preco DECIMAL(10,2),
-        balance DECIMAL(10,3)
+        preco DECIMAL(10,2) DEFAULT 0
       )
     `, (err) => {
       if (err) console.error("Erro ao criar tabela inventory:", err.message);
@@ -169,6 +168,33 @@ const initNewDb = async () => {
                 );
               });
               console.log('Quadro inicial criado com sucesso!');
+            }
+          );
+        });
+      }
+    });
+
+    // Inserir dados iniciais se necessário
+    db.get('SELECT COUNT(*) as count FROM inventory', [], (err, result) => {
+      if (err) {
+        console.error('Erro ao verificar inventário:', err);
+        return;
+      }
+
+      if (result.count === 0) {
+        // Inserir alguns itens iniciais
+        const initialItems = [
+          ['Item 1', 10, 'Descrição do item 1', 29.99],
+          ['Item 2', 5, 'Descrição do item 2', 19.99],
+          ['Item 3', 15, 'Descrição do item 3', 39.99]
+        ];
+
+        initialItems.forEach(([item, quantity, descricao, preco]) => {
+          db.run(
+            'INSERT INTO inventory (item, quantity, descricao, preco) VALUES (?, ?, ?, ?)',
+            [item, quantity, descricao, preco],
+            (err) => {
+              if (err) console.error('Erro ao inserir item inicial:', err);
             }
           );
         });
