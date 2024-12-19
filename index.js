@@ -6,35 +6,28 @@ const kanbanRoutes = require('./routes/kanban');
 
 const app = express();
 
-// Lista de origens permitidas
-const allowedOrigins = [
-  'https://projeto-siteprofissional-anf3.onrender.com',
-  'http://localhost:5173',
-  'http://localhost:10000'
-];
-
-// Configuração do CORS
+// Configuração CORS mais permissiva
 app.use(cors({
-  origin: function(origin, callback) {
-    // Permitir requisições sem origem (como apps mobile ou postman)
-    if (!origin) return callback(null, true);
-    
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      console.log('Origem bloqueada:', origin);
-      callback(new Error('Não permitido pelo CORS'));
-    }
-  },
+  origin: true, // Permite todas as origens
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
-  credentials: false
+  credentials: true
 }));
 
-// Pre-flight requests
-app.options('*', cors());
+// Middleware para garantir headers CORS em todas as respostas
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  res.header('Access-Control-Allow-Origin', origin || '*');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
 
-// Middleware para processar JSON
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  next();
+});
+
 app.use(express.json());
 
 // Rotas
@@ -45,12 +38,12 @@ app.use('/api/kanban', kanbanRoutes);
 app.get('/', (req, res) => {
   res.json({ 
     message: 'API is running',
-    allowedOrigins: allowedOrigins 
+    environment: process.env.NODE_ENV
   });
 });
 
 const port = process.env.PORT || 5000;
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
-  console.log('Allowed origins:', allowedOrigins);
+  console.log(`Environment: ${process.env.NODE_ENV}`);
 }); 
