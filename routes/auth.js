@@ -59,7 +59,7 @@ module.exports = (db) => {
 
     } catch (error) {
       console.error('Login error:', error);
-      res.status(500).json({ error: 'Internal server error' });
+      res.status(500).json({ error: 'Erro interno do servidor' });
     }
   });
 
