@@ -1,18 +1,14 @@
 import axios from 'axios';
 
-const isProduction = window.location.hostname !== 'localhost';
-
 const api = axios.create({
-  baseURL: isProduction 
-    ? 'https://siteprof-backend.onrender.com'
-    : 'http://localhost:5000',
+  baseURL: 'https://siteprof-backend.onrender.com',
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json'
   }
 });
 
-// Interceptor para adicionar headers em todas as requisições
+// Interceptor para adicionar token
 api.interceptors.request.use(config => {
   const token = localStorage.getItem('token');
   if (token) {
@@ -21,7 +17,7 @@ api.interceptors.request.use(config => {
   return config;
 });
 
-// Interceptor para tratar erros
+// Interceptor para erros
 api.interceptors.response.use(
   response => response,
   error => {
