@@ -1,8 +1,11 @@
 import axios from 'axios';
 
+const isProduction = window.location.hostname !== 'localhost';
+
 const api = axios.create({
-  baseURL: 'https://siteprof-backend.onrender.com',
-  withCredentials: true,
+  baseURL: isProduction 
+    ? 'https://siteprof-backend.onrender.com'
+    : 'http://localhost:5000',
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json'

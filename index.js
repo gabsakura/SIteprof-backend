@@ -6,34 +6,25 @@ const kanbanRoutes = require('./routes/kanban');
 
 const app = express();
 
-// Lista de origens permitidas (apenas produção)
-const allowedOrigins = [
-  'https://projeto-siteprofissional-anf3.onrender.com'  // apenas a URL de produção
-];
-
-// Configuração CORS atualizada
+// Configuração CORS simplificada
 app.use(cors({
-  origin: function(origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Não permitido pelo CORS'));
-    }
-  },
-  credentials: true,
+  origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+  credentials: false
 }));
 
-// Headers adicionais de segurança
+// Middleware para headers CORS adicionais
 app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Credentials', 'true');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
   
+  // Pré-flight request
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
+  
   next();
 });
 
