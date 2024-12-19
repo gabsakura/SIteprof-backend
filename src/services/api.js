@@ -1,9 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: import.meta.env.MODE === 'development' 
-    ? 'http://localhost:5000'
-    : 'https://siteprof-backend.onrender.com',
+  baseURL: 'https://siteprof-backend.onrender.com',
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',

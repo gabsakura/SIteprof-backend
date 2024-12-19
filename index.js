@@ -6,23 +6,18 @@ const kanbanRoutes = require('./routes/kanban');
 
 const app = express();
 
-// Lista de origens permitidas
+// Lista de origens permitidas (apenas produção)
 const allowedOrigins = [
-  'https://projeto-siteprofissional-anf3.onrender.com',
-  'http://localhost:5173',
-  'http://localhost:10000'
+  'https://projeto-siteprofissional-anf3.onrender.com'  // apenas a URL de produção
 ];
 
 // Configuração CORS atualizada
 app.use(cors({
   origin: function(origin, callback) {
-    // Permitir requisições sem origin (como Postman)
-    if (!origin) return callback(null, true);
-
-    if (allowedOrigins.indexOf(origin) !== -1) {
+    if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      callback(new Error('Bloqueado pelo CORS'));
+      callback(new Error('Não permitido pelo CORS'));
     }
   },
   credentials: true,
@@ -36,21 +31,16 @@ app.use((req, res, next) => {
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   
-  // Preflight request
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
   next();
 });
 
-// Middleware para processar JSON
 app.use(express.json());
-
-// Rotas com prefixo /api
 app.use('/api/auth', authRoutes);
 app.use('/api/kanban', kanbanRoutes);
 
-// Rota básica para teste
 app.get('/', (req, res) => {
   res.json({ message: 'API is running' });
 });
