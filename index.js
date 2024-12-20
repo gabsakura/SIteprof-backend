@@ -13,21 +13,18 @@ app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   
-  // Handle preflight
   if (req.method === 'OPTIONS') {
     return res.sendStatus(200);
   }
   next();
 });
 
-// Parse JSON bodies
 app.use(express.json());
 
-// Rotas
-app.use('/api/auth', authRoutes);
-app.use('/api/kanban', kanbanRoutes);
+// Rotas - Note que não passamos mais a instância do db
+app.use('/api/auth', authRoutes());
+app.use('/api/kanban', kanbanRoutes());
 
-// Rota de teste
 app.get('/', (req, res) => {
   res.json({ message: 'API is running' });
 });
