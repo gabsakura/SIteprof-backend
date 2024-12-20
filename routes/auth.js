@@ -16,7 +16,8 @@ module.exports = () => {
   router.post('/login', async (req, res) => {
     console.log('Login attempt:', {
       body: req.body,
-      headers: req.headers
+      headers: req.headers,
+      url: req.url
     });
     
     const { email, password } = req.body;

@@ -40,11 +40,15 @@ app.use(express.json());
 app.use('/api/auth', authRoutes());
 app.use('/api/kanban', kanbanRoutes());
 
-// Rota de teste
-app.get('/', (req, res) => {
+// Rota de teste para verificar se a API está funcionando
+app.get('/api/test', (req, res) => {
   res.json({ 
     message: 'API is running',
-    allowedOrigins: allowedOrigins 
+    allowedOrigins,
+    routes: {
+      login: '/api/auth/login',
+      kanban: '/api/kanban'
+    }
   });
 });
 
