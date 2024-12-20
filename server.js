@@ -6,6 +6,7 @@ const authRoutes = require('./routes/auth');
 const kanbanRoutes = require('./routes/kanban');
 const financialRoutes = require('./routes/financial');
 const inventoryRoutes = require('./routes/inventory');
+const profileRoutes = require('./routes/profile');
 
 const app = express();
 
@@ -43,6 +44,7 @@ app.use('/api/auth', authRoutes());
 app.use('/api/kanban', kanbanRoutes());
 app.use('/api', financialRoutes());
 app.use('/api', inventoryRoutes());
+app.use('/api', profileRoutes());
 
 // Rota de teste para verificar se a API está funcionando
 app.get('/api/test', (req, res) => {

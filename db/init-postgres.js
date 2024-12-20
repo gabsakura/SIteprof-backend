@@ -97,6 +97,27 @@ async function initPostgres() {
     `, [userId]);
 
     console.log('Dados financeiros iniciais criados');
+
+    // Após adicionar os dados financeiros, adicione dados de inventário
+    await pool.query(`
+      INSERT INTO inventory (name, quantity, price, user_id) VALUES
+      ('Produto 1', 100, 50.00, $1),
+      ('Produto 2', 150, 75.00, $1),
+      ('Produto 3', 200, 100.00, $1)
+    `, [userId]);
+
+    console.log('Dados de inventário criados');
+
+    // Adicionar alguns cards do kanban
+    await pool.query(`
+      INSERT INTO kanban_cards (title, description, status, user_id) VALUES
+      ('Tarefa 1', 'Descrição da tarefa 1', 'todo', $1),
+      ('Tarefa 2', 'Descrição da tarefa 2', 'doing', $1),
+      ('Tarefa 3', 'Descrição da tarefa 3', 'done', $1)
+    `, [userId]);
+
+    console.log('Cards do kanban criados');
+
     console.log('Banco de dados PostgreSQL inicializado com sucesso!');
 
   } catch (error) {
