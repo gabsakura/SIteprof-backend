@@ -13,6 +13,11 @@ if (!JWT_SECRET) {
 module.exports = (db) => {
   // Rota de login
   router.post('/login', async (req, res) => {
+    console.log('Login attempt:', {
+      body: req.body,
+      headers: req.headers
+    });
+    
     const { email, password } = req.body;
 
     try {
