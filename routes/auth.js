@@ -14,36 +14,50 @@ if (!JWT_SECRET) {
 module.exports = () => {
   // Rota de login
   router.post('/login', async (req, res) => {
-    console.log('Login attempt:', {
-      body: req.body,
-      headers: req.headers,
-      url: req.url
-    });
-    
-    const { email, password } = req.body;
-
     try {
+      console.log('Tentativa de login:', {
+        email: req.body.email,
+        headers: req.headers
+      });
+
+      const { email, password } = req.body;
+
+      // Verificar se o email foi fornecido
+      if (!email) {
+        return res.status(400).json({ error: 'Email é obrigatório' });
+      }
+
+      // Buscar usuário
       const result = await pool.query(
         'SELECT * FROM users WHERE email = $1',
         [email]
       );
-      
+
+      console.log('Resultado da busca:', result.rows);
+
       const user = result.rows[0];
       if (!user) {
-        return res.status(401).json({ error: 'Invalid email or password' });
+        return res.status(401).json({ error: 'Email ou senha inválidos' });
       }
 
+      // Verificar senha
       const isValidPassword = await bcrypt.compare(password, user.password);
       if (!isValidPassword) {
-        return res.status(401).json({ error: 'Invalid email or password' });
+        return res.status(401).json({ error: 'Email ou senha inválidos' });
       }
 
+      // Gerar token
       const token = jwt.sign(
-        { id: user.id, email: user.email, tipo: user.tipo }, 
+        { 
+          id: user.id, 
+          email: user.email, 
+          tipo: user.tipo 
+        },
         JWT_SECRET,
         { expiresIn: '24h' }
       );
 
+      // Resposta de sucesso
       res.json({
         token,
         user: {
@@ -55,8 +69,11 @@ module.exports = () => {
       });
 
     } catch (error) {
-      console.error('Login error:', error);
-      res.status(500).json({ error: 'Erro interno do servidor' });
+      console.error('Erro detalhado no login:', error);
+      res.status(500).json({ 
+        error: 'Erro interno do servidor',
+        details: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
     }
   });
 
@@ -67,9 +84,9 @@ module.exports = () => {
 
   // Rota para registro (protegida)
   router.post('/users/register', verificarToken, verificarAdmin, async (req, res) => {
-    const { nome, email, password, tipo = 'user', verified = true } = req.body;
-
     try {
+      const { nome, email, password, tipo = 'user', verified = true } = req.body;
+
       // Verificar email único
       const existingUser = await pool.query(
         'SELECT id FROM users WHERE email = $1',
@@ -83,12 +100,15 @@ module.exports = () => {
       const hashedPassword = await bcrypt.hash(password, 10);
 
       // Inserir usuário
-      await pool.query(
-        'INSERT INTO users (nome, email, password, tipo, verified) VALUES ($1, $2, $3, $4, $5)',
+      const result = await pool.query(
+        'INSERT INTO users (nome, email, password, tipo, verified) VALUES ($1, $2, $3, $4, $5) RETURNING id, nome, email, tipo',
         [nome, email, hashedPassword, tipo, verified]
       );
 
-      res.json({ message: 'Usuário criado com sucesso' });
+      res.status(201).json({
+        message: 'Usuário criado com sucesso',
+        user: result.rows[0]
+      });
     } catch (error) {
       console.error('Erro ao criar usuário:', error);
       res.status(500).json({ error: 'Erro ao criar usuário' });
