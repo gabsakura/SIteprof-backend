@@ -2,58 +2,35 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const sqlite3 = require('sqlite3').verbose();
-const initNewDb = require('./db/initNewDb');
+const authRoutes = require('./routes/auth');
+const kanbanRoutes = require('./routes/kanban');
 
 const app = express();
-const PORT = process.env.PORT || 5000;
 
-app.use(cors());
-app.use(express.json());
-
-// Configuração do CORS mais específica
-app.use(cors({
-  origin: 'http://localhost:5173', // URL do seu frontend Vite
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
-
-// Log para debug
+// Middleware para CORS
 app.use((req, res, next) => {
-  console.log(`${req.method} ${req.path}`);
+  res.setHeader('Access-Control-Allow-Origin', 'https://projeto-siteprofissional-anf3.onrender.com');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
   next();
 });
 
-const db = new sqlite3.Database('./db/new_dashboard.db', (err) => {
-  if (err) {
-    console.error('Erro ao conectar ao banco de dados:', err.message);
-  } else {
-    console.log('Conectado ao banco de dados.');
-    initNewDb();
-  }
+app.use(express.json());
+
+// Rotas
+app.use('/api/auth', authRoutes());
+app.use('/api/kanban', kanbanRoutes());
+
+app.get('/', (req, res) => {
+  res.json({ message: 'API is running' });
 });
 
-// Rotas de autenticação devem vir antes das rotas da API
-const authRoutes = require('./routes/auth')(db);
-app.use('/auth', authRoutes);
-
-const apiRoutes = require('./routes/api')(db);
-app.use('/api', apiRoutes);
-
-const kanbanRoutes = require('./routes/kanban');
-app.use('/api/kanban', kanbanRoutes(db));
-
-// Adicione esta linha para servir arquivos estáticos
-app.use('/uploads', express.static('uploads'));
-
-// Crie a pasta de uploads se não existir
-const fs = require('fs');
-const uploadDir = './uploads/profile-images';
-if (!fs.existsSync(uploadDir)){
-    fs.mkdirSync(uploadDir, { recursive: true });
-}
-
-app.listen(PORT, () => {
-  console.log(`Servidor rodando na porta ${PORT}`);
+const port = process.env.PORT || 5000;
+app.listen(port, () => {
+  console.log(`Server running on port ${port}`);
 });
