@@ -5,7 +5,8 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "init-db": "node db/init-postgres.js"
+    "init-db": "node db/init-postgres.js",
+    "test-db": "node db/test-connection.js"
   },
   "dependencies": {
     "bcrypt": "^5.1.1",
