@@ -38,6 +38,24 @@ async function initPostgres() {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         user_id INTEGER REFERENCES users(id) ON DELETE CASCADE
       );
+
+      CREATE TABLE financial_data (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id),
+        type VARCHAR(50) NOT NULL,
+        value DECIMAL(10,2) NOT NULL,
+        date DATE NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE inventory (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        quantity INTEGER NOT NULL,
+        price DECIMAL(10,2) NOT NULL,
+        user_id INTEGER REFERENCES users(id),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
     `);
 
     console.log('Tabelas criadas com sucesso');

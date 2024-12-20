@@ -4,6 +4,8 @@ const express = require('express');
 const cors = require('cors');
 const authRoutes = require('./routes/auth');
 const kanbanRoutes = require('./routes/kanban');
+const financialRoutes = require('./routes/financial');
+const inventoryRoutes = require('./routes/inventory');
 
 const app = express();
 
@@ -39,6 +41,8 @@ app.use(express.json());
 // Rotas
 app.use('/api/auth', authRoutes());
 app.use('/api/kanban', kanbanRoutes());
+app.use('/api', financialRoutes());
+app.use('/api', inventoryRoutes());
 
 // Rota de teste para verificar se a API está funcionando
 app.get('/api/test', (req, res) => {
