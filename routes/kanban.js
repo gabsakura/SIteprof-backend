@@ -18,6 +18,54 @@ module.exports = () => {
     }
   });
 
+  // Obter colunas do quadro
+  router.get('/boards/:boardId/columns', verificarToken, async (req, res) => {
+    try {
+      // Retornar colunas padrão do kanban
+      const columns = [
+        {
+          id: 'todo',
+          title: 'A Fazer',
+          cards: []
+        },
+        {
+          id: 'doing',
+          title: 'Em Andamento',
+          cards: []
+        },
+        {
+          id: 'done',
+          title: 'Concluído',
+          cards: []
+        }
+      ];
+
+      // Buscar cards do usuário
+      const result = await pool.query(
+        'SELECT * FROM kanban_cards WHERE user_id = $1 ORDER BY created_at DESC',
+        [req.usuario.id]
+      );
+
+      // Distribuir cards nas colunas
+      result.rows.forEach(card => {
+        const column = columns.find(col => col.id === card.status);
+        if (column) {
+          column.cards.push({
+            id: card.id,
+            title: card.title,
+            description: card.description,
+            status: card.status
+          });
+        }
+      });
+
+      res.json(columns);
+    } catch (error) {
+      console.error('Erro ao buscar colunas:', error);
+      res.status(500).json({ error: 'Erro ao buscar colunas' });
+    }
+  });
+
   // Criar novo card
   router.post('/', verificarToken, async (req, res) => {
     const { title, description, status } = req.body;
