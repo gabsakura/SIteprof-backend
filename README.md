@@ -114,14 +114,11 @@ yarn dev
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-## 📝 License
-
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
-
 ## ✨ Authors
 
-* **Your Name** - *Initial work* - [YourGithub](https://github.com/yourusername)
+* **Gabriel Sakura** - *Initial work* - [YourGithub](https://github.com/gabsakura)
+
 
 ## 📞 Support
 
-For support, email your@email.com or create an issue in this repository.
+For support, email gabsakura1@gmail.com or create an issue in this repository.
