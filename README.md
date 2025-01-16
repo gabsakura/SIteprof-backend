@@ -116,7 +116,7 @@ yarn dev
 
 ## ✨ Authors
 
-* **Gabriel Sakura** - *Initial work* - [YourGithub](https://github.com/gabsakura)
+* **Gabriel Sakura** - *Initial work* - [MyGit](https://github.com/gabsakura)
 
 
 ## 📞 Support
